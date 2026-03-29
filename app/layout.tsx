@@ -1,6 +1,8 @@
-import { Geist, Geist_Mono, Oxanium, Space_Grotesk } from "next/font/google"
+import { Geist_Mono, Oxanium, Space_Grotesk } from "next/font/google"
 
 import "./globals.css"
+import { DevRoutesBar } from "@/components/dev-routes-bar"
+import { SiteFooter } from "@/components/site-footer"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils";
 
@@ -24,8 +26,14 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased", fontMono.variable, "font-sans", oxanium.variable, spaceGroteskHeading.variable)}
     >
-      <body>
-        <ThemeProvider>{children}</ThemeProvider>
+      <body suppressHydrationWarning>
+        <ThemeProvider>
+          <div className="min-h-svh bg-background">
+            <DevRoutesBar />
+            {children}
+            <SiteFooter />
+          </div>
+        </ThemeProvider>
       </body>
     </html>
   )
