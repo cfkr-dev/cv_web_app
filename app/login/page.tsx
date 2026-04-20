@@ -3,11 +3,13 @@
 import Link from "next/link"
 import { Eye, EyeOff, FileUser, LockKeyhole, Mail, UsersRound } from "lucide-react"
 import { IconGoogle } from "nucleo-social-media"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 
+import { grantProtectedRouteAccess } from "@/lib/protected-route-access"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -43,6 +45,7 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
+  const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [status, setStatus] = useState<{
     type: "idle" | "success" | "error" | "info"
@@ -76,12 +79,16 @@ export default function LoginPage() {
       values.email.trim().toLowerCase() === demoCredentials.email &&
       values.password === demoCredentials.password
     ) {
+      grantProtectedRouteAccess("/profile")
       setStatus({
         type: "success",
         message: `Inicio de sesion simulado correcto. Recordar sesion: ${
           values.rememberSession ? "si" : "no"
         }.`,
       })
+      setTimeout(() => {
+        router.push("/profile")
+      }, 500)
       return
     }
 
@@ -92,11 +99,15 @@ export default function LoginPage() {
   }
 
   function handleFakeGoogleLogin() {
+    grantProtectedRouteAccess("/profile")
     setStatus({
       type: "info",
       message:
         "Inicio de sesion con Google simulado. Aqui podras conectar tu proveedor real mas adelante.",
     })
+    setTimeout(() => {
+      router.push("/profile")
+    }, 500)
   }
 
   const statusStyles = {

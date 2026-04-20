@@ -6,6 +6,16 @@ import {
   protectedRouteAccessMap,
 } from "@/lib/protected-route-access"
 
+function getProtectedRouteEntry(pathname: string) {
+  const routeEntries = Object.entries(protectedRouteAccessMap).sort(
+    ([leftPath], [rightPath]) => rightPath.length - leftPath.length
+  )
+
+  return routeEntries.find(([protectedPath]) => {
+    return pathname === protectedPath || pathname.startsWith(`${protectedPath}/`)
+  })
+}
+
 function isDevelopmentApp() {
   return (
     process.env.NEXT_PUBLIC_APP_ENV === "development" ||
@@ -14,7 +24,8 @@ function isDevelopmentApp() {
 }
 
 async function hasProtectedRouteAccess(request: NextRequest, pathname: string) {
-  const protectedRoute = protectedRouteAccessMap[pathname]
+  const protectedRouteEntry = getProtectedRouteEntry(pathname)
+  const protectedRoute = protectedRouteEntry?.[1]
 
   if (!protectedRoute) {
     return true
@@ -33,7 +44,9 @@ async function hasProtectedRouteAccess(request: NextRequest, pathname: string) {
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname
-  const protectedRoute = protectedRouteAccessMap[pathname]
+  const protectedRouteEntry = getProtectedRouteEntry(pathname)
+  const protectedPath = protectedRouteEntry?.[0]
+  const protectedRoute = protectedRouteEntry?.[1]
 
   if (!protectedRoute) {
     return NextResponse.next()
@@ -47,7 +60,7 @@ export async function proxy(request: NextRequest) {
 
   const redirectUrl = new URL(protectedRoute.fallbackPath, request.url)
   const response = NextResponse.redirect(redirectUrl)
-  response.cookies.set(BLOCKED_ROUTE_NOTICE_COOKIE, encodeURIComponent(pathname), {
+  response.cookies.set(BLOCKED_ROUTE_NOTICE_COOKIE, encodeURIComponent(protectedPath ?? pathname), {
     path: "/",
     maxAge: 15,
     sameSite: "lax",
@@ -57,5 +70,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/complete-registration", "/reset-password"],
+  matcher: ["/complete-registration", "/profile/:path*", "/reset-password"],
 }

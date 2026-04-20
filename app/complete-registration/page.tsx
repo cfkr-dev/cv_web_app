@@ -1,12 +1,16 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeft, FileUp, ImageUp, MapPinned, Phone, ShieldCheck, UserRound } from "lucide-react"
+import { ArrowLeft, MapPinned, ShieldCheck, UserRound } from "lucide-react"
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
+import { isValidPhoneNumber } from "react-phone-number-input"
 
+import { ProfileImageCropField } from "@/components/profile-image-crop-field"
+import { grantProtectedRouteAccess } from "@/lib/protected-route-access"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -17,45 +21,59 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { PhoneInput } from "@/components/ui/phone-input"
 
-const maxCvFileSize = 5 * 1024 * 1024
+const acceptedImageTypes = ["image/jpeg", "image/png"]
+const maxProfileImageSize = 2 * 1024 * 1024
 
-const completionSchema = z.object({
-  name: z.string().trim().min(1, "Introduce tu nombre."),
-  surname: z.string().trim().min(1, "Introduce tus apellidos."),
-  profileImageName: z.string().min(1, "Sube una imagen de perfil."),
-  cvFile: z
-    .custom<File | null>((value) => value instanceof File, {
-      message: "Adjunta tu CV en formato PDF.",
-    })
-    .refine((file) => file instanceof File && file.type === "application/pdf", {
-      message: "El CV debe ser un archivo PDF.",
-    })
-    .refine((file) => file instanceof File && file.size <= maxCvFileSize, {
-      message: "El CV no puede superar los 5 MB.",
-    }),
-  location: z.string().trim().min(1, "Introduce tu localidad."),
-  postalCode: z
-    .string()
-    .trim()
-    .min(4, "Introduce un codigo postal valido.")
-    .max(10, "Introduce un codigo postal valido."),
-  mobile: z
-    .string()
-    .trim()
-    .min(9, "Introduce un movil valido.")
-    .max(20, "Introduce un movil valido."),
-})
+const completionSchema = z
+  .object({
+    name: z.string().trim().min(1, "Introduce tu nombre."),
+    surname: z.string().trim().min(1, "Introduce tus apellidos."),
+    profileImageName: z.string().min(1, "Sube una imagen de perfil."),
+    profileImageDataUrl: z.string().min(1, "Sube una imagen de perfil."),
+    profileImageMimeType: z.string(),
+    profileImageSize: z.number(),
+    location: z.string().trim().min(1, "Introduce tu localidad."),
+    postalCode: z
+      .string()
+      .trim()
+      .min(4, "Introduce un codigo postal valido.")
+      .max(10, "Introduce un codigo postal valido."),
+    mobile: z
+      .string()
+      .trim()
+      .min(1, "Introduce un movil valido.")
+      .refine((value) => isValidPhoneNumber(value), "Introduce un movil valido."),
+  })
+  .superRefine((values, context) => {
+    if (values.profileImageDataUrl && !acceptedImageTypes.includes(values.profileImageMimeType)) {
+      context.addIssue({
+        code: "custom",
+        message: "La imagen debe ser un archivo PNG o JPG.",
+        path: ["profileImageDataUrl"],
+      })
+    }
+
+    if (values.profileImageDataUrl && values.profileImageSize > maxProfileImageSize) {
+      context.addIssue({
+        code: "custom",
+        message: "La imagen no puede superar los 2 MB.",
+        path: ["profileImageDataUrl"],
+      })
+    }
+  })
 
 type CompletionFormValues = z.infer<typeof completionSchema>
 
 const completionTips = [
-  "Anade una foto para dar contexto visual a tu perfil.",
+  "Anade una foto de perfil bien encuadrada para mostrar una imagen mas cuidada.",
   "Tu localidad ayuda a situar tu disponibilidad profesional.",
   "El movil facilita el contacto directo cuando lo necesites.",
 ]
 
 export default function CompleteRegistrationPage() {
+  const router = useRouter()
   const [status, setStatus] = useState<{
     type: "idle" | "success" | "error" | "info"
     message: string
@@ -70,7 +88,9 @@ export default function CompleteRegistrationPage() {
       name: "",
       surname: "",
       profileImageName: "",
-      cvFile: null,
+      profileImageDataUrl: "",
+      profileImageMimeType: "",
+      profileImageSize: 0,
       location: "",
       postalCode: "",
       mobile: "",
@@ -84,8 +104,7 @@ export default function CompleteRegistrationPage() {
     formState: { isSubmitting },
   } = form
 
-  const profileImageName = useWatch({ control, name: "profileImageName" }) ?? ""
-  const cvFile = useWatch({ control, name: "cvFile" })
+  const profileImageDataUrl = useWatch({ control, name: "profileImageDataUrl" }) ?? ""
 
   async function onSubmit(values: CompletionFormValues) {
     setStatus({
@@ -99,6 +118,12 @@ export default function CompleteRegistrationPage() {
       type: "success",
       message: `Perfil complementario actualizado con ${values.location}, CP ${values.postalCode} y movil ${values.mobile}.`,
     })
+
+    grantProtectedRouteAccess("/profile")
+
+    setTimeout(() => {
+      router.push("/profile")
+    }, 500)
   }
 
   const statusStyles = {
@@ -156,7 +181,8 @@ export default function CompleteRegistrationPage() {
             </p>
             <CardTitle>Completa tu registro</CardTitle>
             <CardDescription>
-              Sube tu foto, adjunta tu CV y deja listos tus datos de contacto basicos.
+              Sube tu foto de perfil y deja listos tus datos de contacto
+              basicos.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -168,7 +194,11 @@ export default function CompleteRegistrationPage() {
               </div>
             ) : null}
 
-            <form className="grid gap-5 sm:grid-cols-2" noValidate onSubmit={handleSubmit(onSubmit)}>
+            <form
+              className="grid gap-5 sm:grid-cols-2"
+              noValidate
+              onSubmit={handleSubmit(onSubmit)}
+            >
               <FieldGroup className="sm:col-span-2 sm:grid-cols-2">
                 <Controller
                   name="name"
@@ -222,66 +252,36 @@ export default function CompleteRegistrationPage() {
               </FieldGroup>
 
               <Controller
-                name="profileImageName"
+                name="profileImageDataUrl"
                 control={control}
                 render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="sm:col-span-2">
-                    <FieldLabel htmlFor="profile-image">Imagen de perfil</FieldLabel>
-                    <div className="relative">
-                      <ImageUp className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        id="profile-image"
-                        type="file"
-                        accept="image/*"
-                        aria-invalid={fieldState.invalid}
-                        className="pl-9"
-                        onChange={(event) => {
-                          const nextValue = event.target.files?.[0]?.name ?? ""
-                          field.onChange(nextValue)
-                          setValue("profileImageName", nextValue, {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          })
-                        }}
-                      />
-                    </div>
-                    {profileImageName ? (
-                      <FieldDescription>Imagen seleccionada: {profileImageName}</FieldDescription>
-                    ) : null}
-                    {fieldState.invalid ? (
-                      <FieldError errors={[fieldState.error]} />
-                    ) : null}
-                  </Field>
-                )}
-              />
-
-              <Controller
-                name="cvFile"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="sm:col-span-2">
-                    <FieldLabel htmlFor="profile-cv">CV en PDF</FieldLabel>
-                    <div className="relative">
-                      <FileUp className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        id="profile-cv"
-                        type="file"
-                        accept="application/pdf,.pdf"
-                        aria-invalid={fieldState.invalid}
-                        className="pl-9"
-                        onChange={(event) => {
-                          const nextValue = event.target.files?.[0] ?? null
-                          field.onChange(nextValue)
-                          setValue("cvFile", nextValue, {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          })
-                        }}
-                      />
-                    </div>
+                  <Field
+                    data-invalid={fieldState.invalid}
+                    className="sm:col-span-2"
+                  >
+                    <FieldLabel>Imagen de perfil</FieldLabel>
+                    <ProfileImageCropField
+                      valueDataUrl={profileImageDataUrl}
+                      invalid={fieldState.invalid}
+                      onBlur={field.onBlur}
+                      onChange={({ dataUrl, name, mimeType, size }) => {
+                        setValue("profileImageName", name, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        })
+                        setValue("profileImageMimeType", mimeType, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        })
+                        setValue("profileImageSize", size, {
+                          shouldValidate: true,
+                          shouldDirty: true,
+                        })
+                        field.onChange(dataUrl)
+                      }}
+                    />
                     <FieldDescription>
-                      Adjunta un PDF de hasta 5 MB.
-                      {cvFile instanceof File ? ` Archivo seleccionado: ${cvFile.name}` : ""}
+                      Formatos permitidos: PNG y JPG. Tamano maximo: 2 MB.
                     </FieldDescription>
                     {fieldState.invalid ? (
                       <FieldError errors={[fieldState.error]} />
@@ -341,21 +341,19 @@ export default function CompleteRegistrationPage() {
                 name="mobile"
                 control={control}
                 render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="sm:col-span-2">
+                  <Field
+                    data-invalid={fieldState.invalid}
+                    className="sm:col-span-2"
+                  >
                     <FieldLabel htmlFor={field.name}>Movil</FieldLabel>
-                    <div className="relative">
-                      <Phone className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        {...field}
-                        value={field.value ?? ""}
-                        id={field.name}
-                        type="tel"
-                        inputMode="tel"
-                        aria-invalid={fieldState.invalid}
-                        placeholder="+34 600 123 123"
-                        className="pl-9"
-                      />
-                    </div>
+                    <PhoneInput
+                      {...field}
+                      value={field.value ?? ""}
+                      id={field.name}
+                      aria-invalid={fieldState.invalid}
+                      international
+                      placeholder="Introduce tu movil"
+                    />
                     <FieldDescription>
                       Este numero se usara para completar tu perfil de contacto.
                     </FieldDescription>
@@ -366,7 +364,7 @@ export default function CompleteRegistrationPage() {
                 )}
               />
 
-              <div className="sm:col-span-2 flex flex-col gap-3 sm:flex-row sm:justify-between">
+              <div className="flex flex-col gap-3 sm:col-span-2 sm:flex-row sm:justify-between">
                 <Button asChild variant="outline" size="lg">
                   <Link href="/register">
                     <ArrowLeft className="size-4" />

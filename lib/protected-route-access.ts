@@ -11,10 +11,24 @@ export const protectedRouteAccessMap: Record<string, ProtectedRouteConfig> = {
     accessCookieName: "mw-flow-complete-registration",
     fallbackPath: "/register",
   },
+  "/profile": {
+    accessCookieName: "mw-flow-profile",
+    fallbackPath: "/login",
+  },
   "/reset-password": {
     accessCookieName: "mw-flow-reset-password",
     fallbackPath: "/recover-access",
   },
+}
+
+function getProtectedRouteConfig(pathname: string) {
+  const routeEntries = Object.entries(protectedRouteAccessMap).sort(
+    ([leftPath], [rightPath]) => rightPath.length - leftPath.length
+  )
+
+  return routeEntries.find(([protectedPath]) => {
+    return pathname === protectedPath || pathname.startsWith(`${protectedPath}/`)
+  })
 }
 
 function buildCookieString(name: string, value: string, maxAgeSeconds: number) {
@@ -66,7 +80,7 @@ export function consumeBlockedRouteNotice(expectedBlockedPath: string) {
 }
 
 export function buildProtectedRouteHref(pathname: string, allowDevBypass: boolean) {
-  if (!allowDevBypass || !(pathname in protectedRouteAccessMap)) {
+  if (!allowDevBypass || !getProtectedRouteConfig(pathname)) {
     return pathname
   }
 

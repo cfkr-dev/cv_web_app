@@ -14,6 +14,7 @@ const routes = [
     href: "/complete-registration",
     label: "Completar registro",
   },
+  { href: "/profile", label: "Perfil" },
   { href: "/recover-access", label: "Recuperar acceso" },
   {
     href: "/reset-password",
