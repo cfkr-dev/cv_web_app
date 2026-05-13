@@ -15,6 +15,7 @@ const routes = [
     label: "Completar registro",
   },
   { href: "/profile", label: "Perfil" },
+  { href: "/profile/edit", label: "Editar curriculum" },
   { href: "/recover-access", label: "Recuperar acceso" },
   {
     href: "/reset-password",
@@ -27,6 +28,7 @@ const routes = [
   { href: "/403", label: "Error 403" },
   { href: "/500", label: "Error 500" },
   { href: "/maintenance", label: "Mantenimiento" },
+  { href: "/dev/toasts", label: "Pruebas de toast" },
   { href: "/ruta-que-no-existe", label: "Error 404" },
 ]
 
@@ -57,7 +59,9 @@ export default function DevRoutesPage() {
                   index !== routes.length - 1 ? "border-b border-border" : ""
                 }`}
               >
-                <span className="font-medium text-foreground">{route.label}</span>
+                <span className="font-medium text-foreground">
+                  {route.label}
+                </span>
                 <span className="font-mono text-xs text-muted-foreground">
                   {route.href}
                 </span>

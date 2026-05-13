@@ -26,10 +26,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { Button } from "@/components/ui/button"
+import { bytes } from "@/lib/utils/general/bytes"
 import { cn } from "@/lib/utils"
 
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png"]
-const MAX_IMAGE_SIZE = 2 * 1024 * 1024
+const MAX_IMAGE_SIZE = bytes.MB(2)
 
 type ProfileImageValue = {
   dataUrl: string

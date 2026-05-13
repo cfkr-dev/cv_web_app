@@ -58,7 +58,7 @@ import { Progress } from "@/components/ui/progress"
 import {
   getLanguageDefinition,
   type Iso6391LanguageCode,
-} from "@/lib/language-definitions"
+} from "@/lib/utils/general/search/language-definitions"
 import { cn } from "@/lib/utils"
 
 const cvNavItems = [
@@ -915,7 +915,7 @@ export default function ProfilePage() {
                 <MenubarContent className="min-w-56 rounded-2xl">
                   <MenubarItem asChild>
                     <Link
-                      href="/complete-registration"
+                      href="/profile/edit"
                       className="flex items-center gap-2"
                     >
                       <SquarePen className="size-4" />

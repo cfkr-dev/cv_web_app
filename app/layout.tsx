@@ -4,11 +4,15 @@ import "./globals.css"
 import { DevRoutesBar } from "@/components/dev-routes-bar"
 import { SiteFooter } from "@/components/site-footer"
 import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@/lib/utils";
+import { Toaster } from "@/components/ui/sonner"
+import { cn } from "@/lib/utils"
 
-const spaceGroteskHeading = Space_Grotesk({subsets:['latin'],variable:'--font-heading'});
+const spaceGroteskHeading = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-heading",
+})
 
-const oxanium = Oxanium({subsets:['latin'],variable:'--font-sans'})
+const oxanium = Oxanium({ subsets: ["latin"], variable: "--font-sans" })
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -24,7 +28,13 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontMono.variable, "font-sans", oxanium.variable, spaceGroteskHeading.variable)}
+      className={cn(
+        "antialiased",
+        fontMono.variable,
+        "font-sans",
+        oxanium.variable,
+        spaceGroteskHeading.variable
+      )}
     >
       <body suppressHydrationWarning>
         <ThemeProvider>
@@ -33,6 +43,7 @@ export default function RootLayout({
             {children}
             <SiteFooter />
           </div>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

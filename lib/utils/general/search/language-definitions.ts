@@ -1,4 +1,4 @@
-import iso6391Languages from "@/lib/iso-639-1.json"
+import iso6391Languages from "@/lib/utils/general/search/iso-639-1.json"
 
 export type Iso6391LanguageCode = keyof typeof iso6391Languages
 

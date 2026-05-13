@@ -3,22 +3,20 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowLeft, Eye, EyeOff, LockKeyhole, ShieldCheck } from "lucide-react"
-import { useEffect, useMemo, useState } from "react"
+import { useMemo, useState } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
+import { InformationDialog } from "@/components/dialog/information-dialog"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
 import {
   Field,
   FieldDescription,
@@ -27,7 +25,6 @@ import {
   FieldLabel,
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import { Progress } from "@/components/ui/progress"
 
 const resetPasswordSchema = z
   .object({
@@ -103,7 +100,6 @@ export default function ResetPasswordPage() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false)
-  const [redirectProgress, setRedirectProgress] = useState(100)
   const [status, setStatus] = useState<{
     type: "idle" | "success" | "error" | "info"
     message: string
@@ -129,33 +125,12 @@ export default function ResetPasswordPage() {
 
   const password = useWatch({ control, name: "password" }) ?? ""
   const strength = useMemo(() => getPasswordStrength(password), [password])
-  const redirectDurationMs = 10000
-
-  useEffect(() => {
-    if (!isSuccessDialogOpen) {
-      setRedirectProgress(100)
-      return
-    }
-
-    const startedAt = Date.now()
-    const interval = window.setInterval(() => {
-      const elapsed = Date.now() - startedAt
-      const nextProgress = Math.max(100 - (elapsed / redirectDurationMs) * 100, 0)
-      setRedirectProgress(nextProgress)
-
-      if (elapsed >= redirectDurationMs) {
-        window.clearInterval(interval)
-        router.push("/login")
-      }
-    }, 100)
-
-    return () => window.clearInterval(interval)
-  }, [isSuccessDialogOpen, router])
 
   async function onSubmit() {
     setStatus({
       type: "info",
-      message: "Comprobando el enlace y actualizando la contrasena de prueba...",
+      message:
+        "Comprobando el enlace y actualizando la contrasena de prueba...",
     })
 
     await new Promise((resolve) => setTimeout(resolve, 900))
@@ -171,7 +146,8 @@ export default function ResetPasswordPage() {
 
   const statusStyles = {
     idle: "",
-    success: "border-emerald-500/30 bg-emerald-500/8 text-emerald-700 dark:text-emerald-300",
+    success:
+      "border-emerald-500/30 bg-emerald-500/8 text-emerald-700 dark:text-emerald-300",
     error: "border-destructive/30 bg-destructive/8 text-destructive",
     info: "border-primary/20 bg-primary/8 text-foreground",
   }
@@ -199,8 +175,9 @@ export default function ResetPasswordPage() {
                   Restablece tu acceso de forma segura.
                 </CardTitle>
                 <CardDescription className="max-w-lg text-sm leading-7 sm:text-base">
-                  Esta pantalla simula el paso final tras pulsar el enlace enviado por correo
-                  para que puedas validar toda la experiencia de recuperacion.
+                  Esta pantalla simula el paso final tras pulsar el enlace
+                  enviado por correo para que puedas validar toda la experiencia
+                  de recuperacion.
                 </CardDescription>
               </div>
             </div>
@@ -224,7 +201,8 @@ export default function ResetPasswordPage() {
             </p>
             <CardTitle>Crea una nueva clave</CardTitle>
             <CardDescription>
-              Introduce y confirma la nueva contrasena para completar el proceso.
+              Introduce y confirma la nueva contrasena para completar el
+              proceso.
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-6">
@@ -236,7 +214,11 @@ export default function ResetPasswordPage() {
               </div>
             ) : null}
 
-            <form className="space-y-6" noValidate onSubmit={handleSubmit(onSubmit)}>
+            <form
+              className="space-y-6"
+              noValidate
+              onSubmit={handleSubmit(onSubmit)}
+            >
               <FieldGroup>
                 <Controller
                   name="password"
@@ -244,7 +226,9 @@ export default function ResetPasswordPage() {
                   defaultValue=""
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor={field.name}>Nueva contrasena</FieldLabel>
+                      <FieldLabel htmlFor={field.name}>
+                        Nueva contrasena
+                      </FieldLabel>
                       <div className="relative">
                         <LockKeyhole className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
@@ -262,7 +246,11 @@ export default function ResetPasswordPage() {
                         />
                         <button
                           type="button"
-                          aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+                          aria-label={
+                            showPassword
+                              ? "Ocultar contrasena"
+                              : "Mostrar contrasena"
+                          }
                           className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
                           onPointerDown={() => setShowPassword(true)}
                           onPointerUp={() => setShowPassword(false)}
@@ -276,8 +264,8 @@ export default function ResetPasswordPage() {
                         </button>
                       </div>
                       <FieldDescription>
-                        Usa una contrasena robusta con mayusculas, minusculas, numeros y
-                        simbolos.
+                        Usa una contrasena robusta con mayusculas, minusculas,
+                        numeros y simbolos.
                       </FieldDescription>
                       <div className="space-y-2">
                         <div className="flex gap-2">
@@ -285,7 +273,9 @@ export default function ResetPasswordPage() {
                             <div
                               key={segment}
                               className={`h-2 flex-1 rounded-full ${
-                                strength.level >= segment ? strength.color : "bg-muted"
+                                strength.level >= segment
+                                  ? strength.color
+                                  : "bg-muted"
                               }`}
                             />
                           ))}
@@ -312,7 +302,9 @@ export default function ResetPasswordPage() {
                   defaultValue=""
                   render={({ field, fieldState }) => (
                     <Field data-invalid={fieldState.invalid}>
-                      <FieldLabel htmlFor={field.name}>Confirmar contrasena</FieldLabel>
+                      <FieldLabel htmlFor={field.name}>
+                        Confirmar contrasena
+                      </FieldLabel>
                       <div className="relative">
                         <LockKeyhole className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
                         <Input
@@ -330,7 +322,11 @@ export default function ResetPasswordPage() {
                         />
                         <button
                           type="button"
-                          aria-label={showPassword ? "Ocultar contrasena" : "Mostrar contrasena"}
+                          aria-label={
+                            showPassword
+                              ? "Ocultar contrasena"
+                              : "Mostrar contrasena"
+                          }
                           className="absolute top-1/2 right-3 -translate-y-1/2 text-muted-foreground transition hover:text-foreground"
                           onPointerDown={() => setShowPassword(true)}
                           onPointerUp={() => setShowPassword(false)}
@@ -351,16 +347,24 @@ export default function ResetPasswordPage() {
                 />
               </FieldGroup>
 
-              <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full"
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? "Guardando..." : "Guardar nueva contrasena"}
               </Button>
             </form>
 
             <div className="flex flex-col gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4 text-sm sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <p className="font-medium text-foreground">Quieres volver atras?</p>
+                <p className="font-medium text-foreground">
+                  Quieres volver atras?
+                </p>
                 <p className="mt-1 text-muted-foreground">
-                  Puedes regresar al paso anterior o volver directamente al login.
+                  Puedes regresar al paso anterior o volver directamente al
+                  login.
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
@@ -379,30 +383,16 @@ export default function ResetPasswordPage() {
         </Card>
       </div>
 
-      <AlertDialog open={isSuccessDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Contrasena restablecida</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tu contrasena se ha restablecido correctamente. Seras redirigido al login
-              automaticamente para que puedas acceder con tu nueva clave.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <div className="space-y-3">
-            <Progress value={redirectProgress} className="h-2" />
-            <p className="text-xs text-muted-foreground">
-              Redireccionando en {Math.max(Math.ceil((redirectProgress / 100) * 10), 0)} s
-            </p>
-          </div>
-
-          <AlertDialogFooter>
-            <AlertDialogAction onClick={() => router.push("/login")}>
-              Ir ahora al login
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <InformationDialog
+        open={isSuccessDialogOpen}
+        onOpenChange={setIsSuccessDialogOpen}
+        type="success"
+        title="Contrasena restablecida"
+        description="Tu contrasena se ha restablecido correctamente. Seras redirigido al login automaticamente para que puedas acceder con tu nueva clave."
+        closeLabel="Ir ahora al login"
+        autoCloseSeconds={10}
+        onClose={() => router.push("/login")}
+      />
     </main>
   )
 }
