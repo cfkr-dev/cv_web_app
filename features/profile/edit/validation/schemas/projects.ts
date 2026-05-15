@@ -92,7 +92,18 @@ const projectEntrySchema = z
     }
   })
 
+const collaborationProjectEntrySchema = z.object({
+  id: z.string().trim().min(1),
+  name: z.string().trim().min(1),
+  start: z.string().trim(),
+  end: z.string().trim(),
+  isCurrent: z.boolean(),
+  description: z.string().trim(),
+})
+
 export const projectsSectionSchema = z.object({
+  collaborationProjects: z.array(collaborationProjectEntrySchema),
+  removedCollaborationProjectIds: z.array(z.string().trim().min(1)),
   projects: z.array(projectEntrySchema),
 })
 

@@ -16,6 +16,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "components/ui/collapsible"
+import { useFormCollapsibleState } from "@/hooks/use-form-collapsible-state"
 import { scrollToSection } from "@/lib/utils/general/ui"
 import type {
   SectionKey,
@@ -70,9 +71,11 @@ export function Section({
   saveFormId,
   children,
 }: SectionProps) {
+  const { open, setOpen } = useFormCollapsibleState(saveFormId)
+
   return (
     <section id={id} className="scroll-mt-28">
-      <Collapsible defaultOpen>
+      <Collapsible open={open} onOpenChange={setOpen}>
         <Card className="overflow-hidden border-border/70 bg-background/88 shadow-[0_24px_80px_-42px_rgba(15,23,42,0.35)]">
           <CardHeader className="gap-4 px-5 py-5 sm:px-6">
             <div className="flex flex-wrap items-center justify-between gap-4">

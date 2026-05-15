@@ -1,4 +1,9 @@
+export type SectionSubmitOptions = {
+  focusOnInvalid?: boolean
+}
+
 export type SectionSubmitHandle = {
-  validateSilently: () => Promise<boolean>
-  submitSilently: () => Promise<boolean>
+  clearValidationStatePreservingValues: () => void
+  validate: (options?: SectionSubmitOptions) => Promise<boolean>
+  submit: (options?: SectionSubmitOptions) => Promise<boolean>
 }

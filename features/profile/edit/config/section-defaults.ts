@@ -22,7 +22,7 @@ export const initialSectionsDefault: SectionState[] = [
   {
     key: "projects",
     href: "#proyectos",
-    label: "Proyectos personales",
+    label: "Proyectos",
     present: true,
   },
 ]

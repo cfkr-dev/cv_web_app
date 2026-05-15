@@ -8,12 +8,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
+import { useFormCollapsibleState } from "@/hooks/use-form-collapsible-state"
 
 type CollapsibleDeletableItemProps = {
   title?: string
   subtitle?: string
   collapsible?: boolean
   deleteAction?: React.ReactNode
+  expandOnFormId?: string
   children: React.ReactNode
 }
 
@@ -22,11 +24,14 @@ export function CollapsibleDeletableItem({
   subtitle,
   collapsible = false,
   deleteAction,
+  expandOnFormId,
   children,
 }: CollapsibleDeletableItemProps) {
+  const { open, setOpen } = useFormCollapsibleState(expandOnFormId)
+
   if (collapsible) {
     return (
-      <Collapsible defaultOpen>
+      <Collapsible open={open} onOpenChange={setOpen}>
         <article className="rounded-2xl border border-border/70 bg-background/78 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-4 py-4 sm:px-5">
             <CollapsibleTrigger asChild>

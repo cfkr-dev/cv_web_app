@@ -95,3 +95,14 @@ export function createDefaultProjectFormValues() {
     media: [],
   }
 }
+
+export function createDefaultCollaborationProjectFormValues() {
+  return {
+    id: "",
+    name: "",
+    start: "",
+    end: "",
+    isCurrent: false,
+    description: "",
+  }
+}

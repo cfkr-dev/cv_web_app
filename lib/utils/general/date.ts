@@ -17,3 +17,21 @@ export function getCurrentStringDate(format: StringDateFormat) {
 
   return `${year}-${month}-${day}`
 }
+
+export function formatMonth(value: string) {
+  if (!value) {
+    return ""
+  }
+
+  const [year, month] = value.split("-")
+  const monthNumber = Number(month)
+
+  if (!year || Number.isNaN(monthNumber) || monthNumber < 1 || monthNumber > 12) {
+    return value
+  }
+
+  return new Intl.DateTimeFormat("es-ES", {
+    month: "short",
+    year: "numeric",
+  }).format(new Date(Number(year), monthNumber - 1, 1))
+}

@@ -30,13 +30,13 @@ import {
   SkillsSectionFormValues,
   skillsSectionSchema,
 } from "@/features/profile/edit/validation/schemas/skills"
-import { useConfirmableFormSave } from "@/hooks/use-confirmable-form-save"
 import { fakeRequest } from "@/lib/services/mock/fake-request"
 import { getSkill, getSkillCatalog } from "@/lib/services/search/skill"
 import { getNormalizedSearchValue } from "@/lib/utils/general/search"
 import { validateSkillName } from "@/lib/utils/validation/skill"
 import { useValidatedPrependFieldArray } from "@/hooks/use-validated-prepend-field-array"
 import {
+  profileSectionSaveDialogTexts,
   skillsGroupDescriptionMaxLength,
   skillsGroupTitleMaxLength,
   skillsItemCustomDescriptionMaxLength,
@@ -44,9 +44,10 @@ import {
   skillsSectionFormId,
 } from "@/features/profile/edit/validation/config/constants"
 import {
-  submitSectionSilently,
-  validateSectionSilently,
+  submitSection,
+  validateSection,
 } from "@/features/profile/edit/validation/helpers/section-submit"
+import { useProfileSectionSave } from "@/features/profile/edit/validation/hooks/use-profile-section-save"
 import type { SectionSubmitHandle } from "@/features/profile/edit/types/section-submit"
 
 type SkillsProps = {
@@ -63,27 +64,33 @@ export const Skills = forwardRef<SectionSubmitHandle, SkillsProps>(function Skil
       groups: [createDefaultSkillGroupFormValues()],
     },
   })
-  const { getValues, handleSubmit, reset, trigger } = form
+  const { getValues, handleSubmit, reset } = form
   const {
+    clearValidationStatePreservingValues,
     dialogOpen,
     handleDialogOpenChange,
-    handleValidSubmit,
-    runImmediateSubmit,
+    handleInvalidSubmit,
+    openConfirmDialog,
     runConfirmAction,
-  } = useConfirmableFormSave({
+  } = useProfileSectionSave({
     getValues,
     reset,
     onConfirmAction: fakeRequest,
   })
   useImperativeHandle(ref, () => ({
-    validateSilently: () =>
-      validateSectionSilently({
-        trigger,
+    clearValidationStatePreservingValues,
+    validate: (options) =>
+      validateSection({
+        handleSubmit,
+        formId: skillsSectionFormId,
+        focusOnInvalid: options?.focusOnInvalid,
       }),
-    submitSilently: () =>
-      submitSectionSilently({
-        trigger,
-        runImmediateSubmit,
+    submit: (options) =>
+      submitSection({
+        handleSubmit,
+        onValidSubmit: runConfirmAction,
+        formId: skillsSectionFormId,
+        focusOnInvalid: options?.focusOnInvalid,
       }),
   }))
   useEffect(() => {
@@ -114,7 +121,18 @@ export const Skills = forwardRef<SectionSubmitHandle, SkillsProps>(function Skil
         id={skillsSectionFormId}
         className="space-y-5"
         noValidate
-        onSubmit={handleSubmit(handleValidSubmit)}
+        onSubmit={(event) => {
+          event.preventDefault()
+          void submitSection({
+            handleSubmit,
+            formId: skillsSectionFormId,
+            onInvalid: handleInvalidSubmit,
+            onValidSubmit: () => {
+              openConfirmDialog()
+              return true
+            },
+          })
+        }}
       >
         <CollapsibleDeletableItemList
           addLabel="Anadir nuevo grupo de habilidades"
@@ -136,16 +154,9 @@ export const Skills = forwardRef<SectionSubmitHandle, SkillsProps>(function Skil
       <AsyncActionDialog
         open={dialogOpen}
         onOpenChange={handleDialogOpenChange}
-        title="Guardar seccion"
-        description="Deseas guardar estos datos?"
-        actionLabel="Guardar"
-        loadingLabel="Guardando"
-        successTitle="Seccion guardada"
-        successDescription="Los datos de esta seccion se han guardado correctamente."
-        errorTitle="No se pudo guardar la seccion"
-        errorDescription="No se han podido guardar los datos de esta seccion. Intentalo de nuevo."
         actionIcon={<Save className="size-4" />}
         onAction={runConfirmAction}
+        {...profileSectionSaveDialogTexts}
       />
     </>
   )
@@ -160,7 +171,7 @@ function SkillGroupItem({
   index: number
   onDelete: () => void
 }) {
-  const { clearErrors, control, getValues, trigger, formState } = form
+  const { clearErrors, control, getValues } = form
   const prefix = `skill-group-${index + 1}`
   const groupDescription =
     useWatch({
@@ -188,9 +199,7 @@ function SkillGroupItem({
       ? skillsError.message
       : typeof skillsError?.root?.message === "string"
         ? skillsError.root.message
-        : formState.isSubmitted && skillFields.length === 0
-          ? "Anade al menos una habilidad."
-          : undefined
+        : undefined
 
   async function handleAddSkill() {
     const currentSkills = getValues(`groups.${index}.skills`)
@@ -204,15 +213,16 @@ function SkillGroupItem({
     await handleAddSkillItem()
   }
 
-  async function handleDeleteSkill(skillIndex: number) {
+  function handleDeleteSkill(skillIndex: number) {
     removeSkill(skillIndex)
-    await trigger(`groups.${index}.skills`)
+    clearErrors(`groups.${index}.skills`)
   }
 
   return (
     <CollapsibleDeletableItem
       title={`Grupo de habilidades ${index + 1}`}
       collapsible
+      expandOnFormId={skillsSectionFormId}
       deleteAction={
         <AsyncActionDialog
           trigger={
@@ -321,7 +331,7 @@ function SkillGroupItem({
               form={form}
               groupIndex={index}
               skillIndex={skillIndex}
-              onDelete={() => void handleDeleteSkill(skillIndex)}
+              onDelete={() => handleDeleteSkill(skillIndex)}
             />
           ))}
         </CollapsibleDeletableItemList>
@@ -366,6 +376,7 @@ function SkillItem({
     <CollapsibleDeletableItem
       title={`Habilidad ${skillIndex + 1}`}
       collapsible
+      expandOnFormId={skillsSectionFormId}
       deleteAction={
         <AsyncActionDialog
           trigger={

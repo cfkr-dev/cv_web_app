@@ -10,7 +10,6 @@ import { AsyncActionDialog } from "components/dialog/async-action-dialog"
 import { TextInputField } from "components/form/text-input-field"
 import { TextareaField } from "components/form/textarea-field"
 import { UrlNavigationButton } from "components/url-navigation-button"
-import { useConfirmableFormSave } from "hooks/use-confirmable-form-save"
 import { getNavigableUrl } from "@/lib/utils/general/url"
 import {
   personalDataSchema,
@@ -22,12 +21,14 @@ import {
 import { fakeRequest } from "@/lib/services/mock/fake-request"
 import {
   personalDataFormId,
+  profileSectionSaveDialogTexts,
   personalDataSummaryMaxLength,
 } from "@/features/profile/edit/validation/config/constants"
 import {
-  submitSectionSilently,
-  validateSectionSilently,
+  submitSection,
+  validateSection,
 } from "@/features/profile/edit/validation/helpers/section-submit"
+import { useProfileSectionSave } from "@/features/profile/edit/validation/hooks/use-profile-section-save"
 import type { SectionSubmitHandle } from "@/features/profile/edit/types/section-submit"
 
 type PersonalDataProps = {
@@ -42,27 +43,33 @@ export const PersonalData = forwardRef<SectionSubmitHandle, PersonalDataProps>(f
     resolver: zodResolver(personalDataSchema),
     defaultValues: createDefaultPersonalDataFormValues()
   })
-  const { control, getValues, handleSubmit, reset, trigger } = form
+  const { control, getValues, handleSubmit, reset } = form
   const {
+    clearValidationStatePreservingValues,
     dialogOpen,
     handleDialogOpenChange,
-    handleValidSubmit,
-    runImmediateSubmit,
+    handleInvalidSubmit,
+    openConfirmDialog,
     runConfirmAction,
-  } = useConfirmableFormSave({
+  } = useProfileSectionSave({
     getValues,
     reset,
     onConfirmAction: fakeRequest,
   })
   useImperativeHandle(ref, () => ({
-    validateSilently: () =>
-      validateSectionSilently({
-        trigger,
+    clearValidationStatePreservingValues,
+    validate: (options) =>
+      validateSection({
+        handleSubmit,
+        formId: personalDataFormId,
+        focusOnInvalid: options?.focusOnInvalid,
       }),
-    submitSilently: () =>
-      submitSectionSilently({
-        trigger,
-        runImmediateSubmit,
+    submit: (options) =>
+      submitSection({
+        handleSubmit,
+        onValidSubmit: runConfirmAction,
+        formId: personalDataFormId,
+        focusOnInvalid: options?.focusOnInvalid,
       }),
   }))
   useEffect(() => {
@@ -82,7 +89,18 @@ export const PersonalData = forwardRef<SectionSubmitHandle, PersonalDataProps>(f
         id={personalDataFormId}
         className="grid gap-5 sm:grid-cols-2"
         noValidate
-        onSubmit={handleSubmit(handleValidSubmit)}
+        onSubmit={(event) => {
+          event.preventDefault()
+          void submitSection({
+            handleSubmit,
+            formId: personalDataFormId,
+            onInvalid: handleInvalidSubmit,
+            onValidSubmit: () => {
+              openConfirmDialog()
+              return true
+            },
+          })
+        }}
       >
         <Controller
           name="role"
@@ -195,16 +213,9 @@ export const PersonalData = forwardRef<SectionSubmitHandle, PersonalDataProps>(f
       <AsyncActionDialog
         open={dialogOpen}
         onOpenChange={handleDialogOpenChange}
-        title="Guardar seccion"
-        description="Deseas guardar estos datos?"
-        actionLabel="Guardar"
-        loadingLabel="Guardando"
-        successTitle="Seccion guardada"
-        successDescription="Los datos de esta seccion se han guardado correctamente."
-        errorTitle="No se pudo guardar la seccion"
-        errorDescription="No se han podido guardar los datos de esta seccion. Intentalo de nuevo."
         actionIcon={<Save className="size-4" />}
         onAction={runConfirmAction}
+        {...profileSectionSaveDialogTexts}
       />
     </>
   )

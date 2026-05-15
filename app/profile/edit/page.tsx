@@ -243,8 +243,8 @@ export default function ProfileEditPage() {
             {isSectionPresent(cvSections, "projects") ? (
               <Section
                 id="proyectos"
-                title="Proyectos personales"
-                description="Proyectos propios con fechas, descripcion y galeria multimedia."
+                title="Proyectos"
+                description="Proyectos en colaboracion y proyectos creados por mi."
                 icon={<FilePlus2 className="size-5" />}
                 showSectionSave
                 saveFormId={projectsSectionFormId}

@@ -14,6 +14,10 @@ import { cn } from "@/lib/utils"
 
 const Combobox = ComboboxPrimitive.Root
 
+function useComboboxAnchor<T extends HTMLElement = HTMLDivElement>() {
+  return React.useRef<T | null>(null)
+}
+
 function ComboboxTrigger({
   className,
   children,
@@ -90,6 +94,76 @@ function ComboboxInputControl({
       data-slot="input-group-control"
       className={cn(
         "h-11 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:bg-transparent",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+const ComboboxValue = ComboboxPrimitive.Value
+
+const ComboboxChips = React.forwardRef<
+  HTMLDivElement,
+  ComboboxPrimitive.Chips.Props
+>(function ComboboxChips({ className, ...props }, ref) {
+  return (
+    <ComboboxPrimitive.Chips
+      ref={ref}
+      data-slot="combobox-chips"
+      className={cn(
+        "flex min-h-11 w-full flex-wrap items-center gap-1.5 rounded-lg border border-input bg-transparent px-2.5 py-2 text-sm",
+        className
+      )}
+      {...props}
+    />
+  )
+})
+
+function ComboboxChip({
+  className,
+  ...props
+}: ComboboxPrimitive.Chip.Props) {
+  return (
+    <ComboboxPrimitive.Chip
+      data-slot="combobox-chip"
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-muted/40 px-2 py-1 text-sm",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function ComboboxChipRemove({
+  className,
+  children,
+  ...props
+}: ComboboxPrimitive.ChipRemove.Props) {
+  return (
+    <ComboboxPrimitive.ChipRemove
+      data-slot="combobox-chip-remove"
+      className={cn(
+        "inline-flex size-5 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+        className
+      )}
+      {...props}
+    >
+      {children ?? <XIcon className="size-3" />}
+    </ComboboxPrimitive.ChipRemove>
+  )
+}
+
+function ComboboxChipsInput({
+  className,
+  ...props
+}: ComboboxPrimitive.Input.Props) {
+  return (
+    <ComboboxPrimitive.Input
+      data-slot="combobox-chips-input"
+      className={cn(
+        "h-7 min-w-24 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground",
         className
       )}
       {...props}
@@ -181,6 +255,10 @@ function ComboboxEmpty({ className, ...props }: ComboboxPrimitive.Empty.Props) {
 
 export {
   Combobox,
+  ComboboxChip,
+  ComboboxChipRemove,
+  ComboboxChips,
+  ComboboxChipsInput,
   ComboboxClear,
   ComboboxContent,
   ComboboxEmpty,
@@ -189,4 +267,6 @@ export {
   ComboboxItem,
   ComboboxList,
   ComboboxTrigger,
+  ComboboxValue,
+  useComboboxAnchor,
 }

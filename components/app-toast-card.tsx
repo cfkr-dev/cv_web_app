@@ -10,9 +10,8 @@ import {
 } from "lucide-react"
 import { useCallback, useEffect, useState, type ReactNode } from "react"
 
-import { Progress } from "components/ui/progress"
-import { cn } from "lib/utils"
-import styles from "./app-toast-card.module.css"
+import { Progress } from "@/components/ui/progress"
+import { cn } from "@/lib/utils"
 
 export type AppToastType = "success" | "info" | "warning" | "error"
 
@@ -28,31 +27,45 @@ type AppToastCardProps = {
 const toastTypeContent = {
   success: {
     icon: CheckCircle2,
-    rootClassName: styles.success,
-    iconClassName: styles.successIcon,
-    progressTrackClassName: styles.successProgressTrack,
-    progressClassName: styles.successProgressIndicator,
+    rootClassName:
+      "border-[color:color-mix(in_oklab,var(--border)_72%,rgb(34_197_94)_28%)] border-l-[color:color-mix(in_oklab,var(--primary)_18%,rgb(34_197_94))] bg-[color:color-mix(in_oklab,rgb(255_255_255_/_0.58)_92%,rgb(34_197_94_/_0.18)_8%)] dark:bg-[color:color-mix(in_oklab,rgb(24_29_39_/_0.58)_92%,rgb(34_197_94_/_0.2)_8%)]",
+    iconClassName:
+      "text-[color:color-mix(in_oklab,var(--primary)_18%,rgb(21_128_61))]",
+    progressTrackClassName:
+      "bg-[color:color-mix(in_oklab,var(--primary)_10%,rgb(34_197_94_/_0.14))]",
+    progressIndicatorClassName:
+      "bg-[color:color-mix(in_oklab,var(--primary)_18%,rgb(34_197_94))]",
   },
   info: {
     icon: Info,
-    rootClassName: styles.info,
-    iconClassName: styles.infoIcon,
-    progressTrackClassName: styles.infoProgressTrack,
-    progressClassName: styles.infoProgressIndicator,
+    rootClassName:
+      "border-[color:color-mix(in_oklab,var(--border)_72%,var(--primary)_28%)] border-l-primary bg-[color:color-mix(in_oklab,rgb(255_255_255_/_0.58)_92%,var(--primary)_8%)] dark:bg-[color:color-mix(in_oklab,rgb(24_29_39_/_0.58)_92%,var(--primary)_8%)]",
+    iconClassName: "text-primary",
+    progressTrackClassName:
+      "bg-[color:color-mix(in_oklab,var(--primary)_14%,transparent)]",
+    progressIndicatorClassName: "bg-primary",
   },
   warning: {
     icon: TriangleAlert,
-    rootClassName: styles.warning,
-    iconClassName: styles.warningIcon,
-    progressTrackClassName: styles.warningProgressTrack,
-    progressClassName: styles.warningProgressIndicator,
+    rootClassName:
+      "border-[color:color-mix(in_oklab,var(--border)_72%,rgb(245_158_11)_28%)] border-l-[color:color-mix(in_oklab,var(--primary)_16%,rgb(245_158_11))] bg-[color:color-mix(in_oklab,rgb(255_255_255_/_0.58)_92%,rgb(245_158_11_/_0.18)_8%)] dark:bg-[color:color-mix(in_oklab,rgb(24_29_39_/_0.58)_92%,rgb(245_158_11_/_0.2)_8%)]",
+    iconClassName:
+      "text-[color:color-mix(in_oklab,var(--primary)_14%,rgb(217_119_6))]",
+    progressTrackClassName:
+      "bg-[color:color-mix(in_oklab,var(--primary)_8%,rgb(245_158_11_/_0.14))]",
+    progressIndicatorClassName:
+      "bg-[color:color-mix(in_oklab,var(--primary)_14%,rgb(245_158_11))]",
   },
   error: {
     icon: AlertCircle,
-    rootClassName: styles.error,
-    iconClassName: styles.errorIcon,
-    progressTrackClassName: styles.errorProgressTrack,
-    progressClassName: styles.errorProgressIndicator,
+    rootClassName:
+      "border-[color:color-mix(in_oklab,var(--border)_70%,var(--destructive)_30%)] border-l-[color:color-mix(in_oklab,var(--primary)_10%,var(--destructive))] bg-[color:color-mix(in_oklab,rgb(255_255_255_/_0.58)_92%,var(--destructive)_8%)] dark:bg-[color:color-mix(in_oklab,rgb(24_29_39_/_0.58)_92%,var(--destructive)_8%)]",
+    iconClassName:
+      "text-[color:color-mix(in_oklab,var(--primary)_10%,var(--destructive))]",
+    progressTrackClassName:
+      "bg-[color:color-mix(in_oklab,var(--primary)_6%,var(--destructive)_14%,transparent)]",
+    progressIndicatorClassName:
+      "bg-[color:color-mix(in_oklab,var(--primary)_10%,var(--destructive))]",
   },
 } satisfies Record<
   AppToastType,
@@ -61,7 +74,7 @@ const toastTypeContent = {
     rootClassName: string
     iconClassName: string
     progressTrackClassName: string
-    progressClassName: string
+    progressIndicatorClassName: string
   }
 >
 
@@ -103,12 +116,19 @@ export function AppToastCard({
   }, [durationMs, handleDismiss])
 
   return (
-    <div className={cn(styles.card, typeContent.rootClassName)}>
+    <div
+      className={cn(
+        "relative w-[min(calc(100vw-2rem),24rem)] overflow-hidden rounded-lg border border-l-4 shadow-[0_10px_30px_rgb(15_23_42_/_0.12)] backdrop-blur-[16px] backdrop-saturate-[135%]",
+        typeContent.rootClassName
+      )}
+    >
       <button
         type="button"
         aria-label="Cerrar notificacion"
         className={cn(
-          styles.closeButton,
+          "absolute top-1.5 right-1 flex h-7 w-7 items-center justify-center rounded-md",
+          "text-[color:color-mix(in_oklab,var(--foreground)_80%,transparent)] transition-colors duration-150",
+          "hover:bg-black/5 hover:text-foreground dark:hover:bg-white/10",
           "outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
         )}
         onClick={handleDismiss}
@@ -116,28 +136,32 @@ export function AppToastCard({
         <X className="size-4" />
       </button>
 
-      <div className={styles.content}>
-        <div className={cn(styles.iconWrap, typeContent.iconClassName)}>
+      <div className="flex items-center gap-3 px-4 pt-2.5 pb-1.5 pr-12">
+        <div
+          className={cn(
+            "flex h-10 w-10 shrink-0 items-center justify-center",
+            typeContent.iconClassName
+          )}
+        >
           <Icon className="size-7" />
         </div>
 
-        <div className={styles.textWrap}>
+        <div className="min-w-0 flex-1 py-1">
           <p className="text-sm leading-5 font-semibold">{title}</p>
           {description ? (
-            <div className={styles.description}>{description}</div>
+            <div className="mt-1.5 text-sm leading-5 opacity-80">
+              {description}
+            </div>
           ) : null}
         </div>
       </div>
 
       {durationMs ? (
-        <div className={styles.progressWrap}>
+        <div className="mt-0.5 mb-2 px-2">
           <Progress
             value={progress}
-            className={cn(
-              styles.progressRoot,
-              typeContent.progressTrackClassName
-            )}
-            indicatorClassName={typeContent.progressClassName}
+            className={cn("h-1.5 w-full", typeContent.progressTrackClassName)}
+            indicatorClassName={typeContent.progressIndicatorClassName}
           />
         </div>
       ) : null}

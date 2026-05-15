@@ -35,19 +35,20 @@ import {
   WorkExperienceSectionFormValues,
   workExperienceSectionSchema,
 } from "@/features/profile/edit/validation/schemas/work-experience"
-import { useConfirmableFormSave } from "@/hooks/use-confirmable-form-save"
 import { fakeRequest } from "@/lib/services/mock/fake-request"
 import { useValidatedPrependFieldArray } from "@/hooks/use-validated-prepend-field-array"
 import {
+  profileSectionSaveDialogTexts,
   workExperienceCompanyMaxLength,
   workExperienceDescriptionMaxLength,
   workExperienceSectionFormId,
   workExperienceTitleMaxLength,
 } from "@/features/profile/edit/validation/config/constants"
 import {
-  submitSectionSilently,
-  validateSectionSilently,
+  submitSection,
+  validateSection,
 } from "@/features/profile/edit/validation/helpers/section-submit"
+import { useProfileSectionSave } from "@/features/profile/edit/validation/hooks/use-profile-section-save"
 import type { SectionSubmitHandle } from "@/features/profile/edit/types/section-submit"
 import { MultimediaEditorList } from "@/features/multimedia/edit/components/multimedia"
 import { createDefaultMultimediaFormValues } from "@/features/multimedia/edit/validation/config/defaults"
@@ -66,27 +67,33 @@ export const WorkExperience = forwardRef<SectionSubmitHandle, WorkExperienceProp
       experiences: [createDefaultWorkExperienceFormValues()],
     },
   })
-  const { getValues, handleSubmit, reset, setValue, trigger } = form
+  const { getValues, handleSubmit, reset, setValue } = form
   const {
+    clearValidationStatePreservingValues,
     dialogOpen,
     handleDialogOpenChange,
-    handleValidSubmit,
-    runImmediateSubmit,
+    handleInvalidSubmit,
+    openConfirmDialog,
     runConfirmAction,
-  } = useConfirmableFormSave({
+  } = useProfileSectionSave({
     getValues,
     reset,
     onConfirmAction: fakeRequest,
   })
   useImperativeHandle(ref, () => ({
-    validateSilently: () =>
-      validateSectionSilently({
-        trigger,
+    clearValidationStatePreservingValues,
+    validate: (options) =>
+      validateSection({
+        handleSubmit,
+        formId: workExperienceSectionFormId,
+        focusOnInvalid: options?.focusOnInvalid,
       }),
-    submitSilently: () =>
-      submitSectionSilently({
-        trigger,
-        runImmediateSubmit,
+    submit: (options) =>
+      submitSection({
+        handleSubmit,
+        onValidSubmit: runConfirmAction,
+        formId: workExperienceSectionFormId,
+        focusOnInvalid: options?.focusOnInvalid,
       }),
   }))
   useEffect(() => {
@@ -117,7 +124,18 @@ export const WorkExperience = forwardRef<SectionSubmitHandle, WorkExperienceProp
         id={workExperienceSectionFormId}
         className="space-y-5"
         noValidate
-        onSubmit={handleSubmit(handleValidSubmit)}
+        onSubmit={(event) => {
+          event.preventDefault()
+          void submitSection({
+            handleSubmit,
+            formId: workExperienceSectionFormId,
+            onInvalid: handleInvalidSubmit,
+            onValidSubmit: () => {
+              openConfirmDialog()
+              return true
+            },
+          })
+        }}
       >
         <CollapsibleDeletableItemList
           addLabel="Anadir experiencia"
@@ -140,16 +158,9 @@ export const WorkExperience = forwardRef<SectionSubmitHandle, WorkExperienceProp
       <AsyncActionDialog
         open={dialogOpen}
         onOpenChange={handleDialogOpenChange}
-        title="Guardar seccion"
-        description="Deseas guardar estos datos?"
-        actionLabel="Guardar"
-        loadingLabel="Guardando"
-        successTitle="Seccion guardada"
-        successDescription="Los datos de esta seccion se han guardado correctamente."
-        errorTitle="No se pudo guardar la seccion"
-        errorDescription="No se han podido guardar los datos de esta seccion. Intentalo de nuevo."
         actionIcon={<Save className="size-4" />}
         onAction={runConfirmAction}
+        {...profileSectionSaveDialogTexts}
       />
     </>
   )
@@ -188,6 +199,7 @@ function WorkExperienceItem({
     <CollapsibleDeletableItem
       title={`Experiencia ${index + 1}`}
       collapsible
+      expandOnFormId={workExperienceSectionFormId}
       deleteAction={
         <AsyncActionDialog
           trigger={

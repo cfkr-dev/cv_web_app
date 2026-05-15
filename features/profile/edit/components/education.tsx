@@ -52,23 +52,25 @@ import {
   educationStudiesDescriptionMaxLength,
   educationStudiesInstitutionMaxLength,
   educationStudiesTitleMaxLength,
+  profileSectionSaveDialogTexts,
 } from "@/features/profile/edit/validation/config/constants"
 import {
-  submitSectionSilently,
-  validateSectionSilently,
+  submitSection,
+  validateSection,
 } from "@/features/profile/edit/validation/helpers/section-submit"
 import {
   type EducationSectionFormValues,
   educationSectionSchema,
 } from "@/features/profile/edit/validation/schemas/education"
 import type { SectionSubmitHandle } from "@/features/profile/edit/types/section-submit"
+import { useFormCollapsibleState } from "@/hooks/use-form-collapsible-state"
 import { MultimediaEditorList } from "@/features/multimedia/edit/components/multimedia"
 import { createDefaultMultimediaFormValues } from "@/features/multimedia/edit/validation/config/defaults"
 import { useValidatedPrependFieldArray } from "@/hooks/use-validated-prepend-field-array"
-import { useConfirmableFormSave } from "@/hooks/use-confirmable-form-save"
 import { fakeRequest } from "@/lib/services/mock/fake-request"
 import { getLanguage } from "@/lib/services/search/language"
 import { getLocation } from "@/lib/services/search/location"
+import { useProfileSectionSave } from "@/features/profile/edit/validation/hooks/use-profile-section-save"
 
 type EducationProps = {
   initialData?: EducationSectionFormValues | null
@@ -82,28 +84,34 @@ export const Education = forwardRef<SectionSubmitHandle, EducationProps>(functio
     resolver: zodResolver(educationSectionSchema),
     defaultValues: createDefaultEducationSectionFormValues(),
   })
-  const { getValues, handleSubmit, reset, setValue, trigger } = form
+  const { getValues, handleSubmit, reset, setValue } = form
   const {
+    clearValidationStatePreservingValues,
     dialogOpen,
     handleDialogOpenChange,
-    handleValidSubmit,
-    runImmediateSubmit,
+    handleInvalidSubmit,
+    openConfirmDialog,
     runConfirmAction,
-  } = useConfirmableFormSave({
+  } = useProfileSectionSave({
     getValues,
     reset,
     onConfirmAction: fakeRequest,
   })
 
   useImperativeHandle(ref, () => ({
-    validateSilently: () =>
-      validateSectionSilently({
-        trigger,
+    clearValidationStatePreservingValues,
+    validate: (options) =>
+      validateSection({
+        handleSubmit,
+        formId: educationSectionFormId,
+        focusOnInvalid: options?.focusOnInvalid,
       }),
-    submitSilently: () =>
-      submitSectionSilently({
-        trigger,
-        runImmediateSubmit,
+    submit: (options) =>
+      submitSection({
+        handleSubmit,
+        onValidSubmit: runConfirmAction,
+        formId: educationSectionFormId,
+        focusOnInvalid: options?.focusOnInvalid,
       }),
   }))
   useEffect(() => {
@@ -163,11 +171,23 @@ export const Education = forwardRef<SectionSubmitHandle, EducationProps>(functio
         id={educationSectionFormId}
         className="space-y-5"
         noValidate
-        onSubmit={handleSubmit(handleValidSubmit)}
+        onSubmit={(event) => {
+          event.preventDefault()
+          void submitSection({
+            handleSubmit,
+            formId: educationSectionFormId,
+            onInvalid: handleInvalidSubmit,
+            onValidSubmit: () => {
+              openConfirmDialog()
+              return true
+            },
+          })
+        }}
       >
         <EducationSubsection
           title="Estudios"
           icon={<GraduationCap className="size-4" />}
+          formId={educationSectionFormId}
         >
           <CollapsibleDeletableItemList
             addLabel="Anadir estudio"
@@ -190,6 +210,7 @@ export const Education = forwardRef<SectionSubmitHandle, EducationProps>(functio
         <EducationSubsection
           title="Idiomas"
           icon={<Languages className="size-4" />}
+          formId={educationSectionFormId}
         >
           <CollapsibleDeletableItemList
             addLabel="Anadir idioma"
@@ -212,6 +233,7 @@ export const Education = forwardRef<SectionSubmitHandle, EducationProps>(functio
         <EducationSubsection
           title="Cursos y certificados"
           icon={<BadgeCheck className="size-4" />}
+          formId={educationSectionFormId}
         >
           <CollapsibleDeletableItemList
             addLabel="Anadir curso"
@@ -235,16 +257,9 @@ export const Education = forwardRef<SectionSubmitHandle, EducationProps>(functio
       <AsyncActionDialog
         open={dialogOpen}
         onOpenChange={handleDialogOpenChange}
-        title="Guardar seccion"
-        description="Deseas guardar estos datos?"
-        actionLabel="Guardar"
-        loadingLabel="Guardando"
-        successTitle="Seccion guardada"
-        successDescription="Los datos de esta seccion se han guardado correctamente."
-        errorTitle="No se pudo guardar la seccion"
-        errorDescription="No se han podido guardar los datos de esta seccion. Intentalo de nuevo."
         actionIcon={<Save className="size-4" />}
         onAction={runConfirmAction}
+        {...profileSectionSaveDialogTexts}
       />
     </>
   )
@@ -253,14 +268,18 @@ export const Education = forwardRef<SectionSubmitHandle, EducationProps>(functio
 function EducationSubsection({
   title,
   icon,
+  formId,
   children,
 }: {
   title: string
   icon: React.ReactNode
+  formId?: string
   children: React.ReactNode
 }) {
+  const { open, setOpen } = useFormCollapsibleState(formId)
+
   return (
-    <Collapsible defaultOpen>
+    <Collapsible open={open} onOpenChange={setOpen}>
       <section className="overflow-hidden rounded-2xl border border-border/70 bg-muted/14">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 px-4 py-4 sm:px-5">
           <CollapsibleTrigger asChild>
@@ -327,6 +346,7 @@ function EducationStudyItem({
     <CollapsibleDeletableItem
       title={`Estudio ${index + 1}`}
       collapsible
+      expandOnFormId={educationSectionFormId}
       deleteAction={
         <AsyncActionDialog
           trigger={
@@ -529,6 +549,7 @@ function EducationLanguageItem({
     <CollapsibleDeletableItem
       title={`Idioma ${index + 1}`}
       collapsible
+      expandOnFormId={educationSectionFormId}
       deleteAction={
         <AsyncActionDialog
           trigger={
@@ -655,6 +676,7 @@ function EducationCourseItem({
     <CollapsibleDeletableItem
       title={`Curso o certificado ${index + 1}`}
       collapsible
+      expandOnFormId={educationSectionFormId}
       deleteAction={
         <AsyncActionDialog
           trigger={

@@ -341,12 +341,12 @@ function MultimediaEditorItem<TFieldValues extends FieldValues>({
                   setValue(
                     `${itemName}.isLocalFile` as Path<TFieldValues>,
                     true as never,
-                    { shouldDirty: true, shouldValidate: true }
+                    { shouldDirty: true }
                   )
                   setValue(
                     `${itemName}.file` as Path<TFieldValues>,
                     null as never,
-                    { shouldDirty: true, shouldValidate: true }
+                    { shouldDirty: true }
                   )
                   setValue(
                     `${itemName}.fileName` as Path<TFieldValues>,

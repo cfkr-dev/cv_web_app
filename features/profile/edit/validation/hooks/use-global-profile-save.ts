@@ -3,9 +3,11 @@
 import { useState } from "react"
 import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime"
 
+import { useAppToast } from "@/hooks/use-app-toast"
 import type { SectionState } from "@/features/profile/edit/types/section"
 import type { SectionSubmitHandle } from "@/features/profile/edit/types/section-submit"
 import {
+  clearGlobalProfileSectionsValidationState,
   submitGlobalProfileSections,
   validateGlobalProfileSections,
 } from "@/features/profile/edit/validation/helpers/global-profile-submit"
@@ -30,11 +32,16 @@ export function useGlobalProfileSave({
   router,
 }: UseGlobalProfileSaveOptions) {
   const [dialogOpen, setDialogOpen] = useState(false)
+  const appToast = useAppToast()
 
   async function handleGlobalSaveClick() {
     const isValid = await validateGlobalProfileSections(sections, refs)
 
     if (!isValid) {
+      appToast.error({
+        title: "No se puede guardar el perfil",
+        description: "Corrige los errores del formulario antes de continuar.",
+      })
       return
     }
 
@@ -43,6 +50,10 @@ export function useGlobalProfileSave({
 
   function handleDialogOpenChange(open: boolean) {
     setDialogOpen(open)
+
+    if (!open) {
+      clearGlobalProfileSectionsValidationState(sections, refs)
+    }
   }
 
   async function runGlobalConfirmAction() {

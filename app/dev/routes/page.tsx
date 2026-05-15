@@ -29,6 +29,7 @@ const routes = [
   { href: "/500", label: "Error 500" },
   { href: "/maintenance", label: "Mantenimiento" },
   { href: "/dev/toasts", label: "Pruebas de toast" },
+  { href: "/dev/tooltips", label: "Pruebas de tooltip" },
   { href: "/ruta-que-no-existe", label: "Error 404" },
 ]
 

@@ -4,6 +4,7 @@ import "./globals.css"
 import { DevRoutesBar } from "@/components/dev-routes-bar"
 import { SiteFooter } from "@/components/site-footer"
 import { ThemeProvider } from "@/components/theme-provider"
+import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
 import { cn } from "@/lib/utils"
 
@@ -38,12 +39,14 @@ export default function RootLayout({
     >
       <body suppressHydrationWarning>
         <ThemeProvider>
-          <div className="min-h-svh bg-background">
-            <DevRoutesBar />
-            {children}
-            <SiteFooter />
-          </div>
-          <Toaster />
+          <TooltipProvider>
+            <div className="min-h-svh bg-background">
+              <DevRoutesBar />
+              {children}
+              <SiteFooter />
+            </div>
+            <Toaster />
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

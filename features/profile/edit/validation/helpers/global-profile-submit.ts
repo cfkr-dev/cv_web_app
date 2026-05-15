@@ -2,6 +2,14 @@ import type { RefObject } from "react"
 
 import type { SectionState } from "@/features/profile/edit/types/section"
 import type { SectionSubmitHandle } from "@/features/profile/edit/types/section-submit"
+import {
+  personalDataFormId,
+  workExperienceSectionFormId,
+  educationSectionFormId,
+  skillsSectionFormId,
+  projectsSectionFormId,
+} from "@/features/profile/edit/validation/config/constants"
+import { focusFirstErrorInForms } from "@/lib/utils/validation/form-error-focus"
 
 type SectionRef = RefObject<SectionSubmitHandle | null>
 
@@ -17,8 +25,26 @@ function isSectionVisible(sections: SectionState[], key: SectionState["key"]) {
   return sections.some((section) => section.key === key && section.present)
 }
 
-function logHiddenSectionSubmit(label: string, payload: unknown) {
-  console.log(`Form submit payload (${label}):`, payload)
+function getVisibleFormIds(sections: SectionState[]) {
+  const formIds = [personalDataFormId]
+
+  if (isSectionVisible(sections, "work-experience")) {
+    formIds.push(workExperienceSectionFormId)
+  }
+
+  if (isSectionVisible(sections, "education")) {
+    formIds.push(educationSectionFormId)
+  }
+
+  if (isSectionVisible(sections, "skills")) {
+    formIds.push(skillsSectionFormId)
+  }
+
+  if (isSectionVisible(sections, "projects")) {
+    formIds.push(projectsSectionFormId)
+  }
+
+  return formIds
 }
 
 export async function validateGlobalProfileSections(
@@ -26,30 +52,58 @@ export async function validateGlobalProfileSections(
   refs: GlobalProfileSubmitRefs
 ) {
   const validators: Array<() => Promise<boolean>> = [
-    () => refs.personalDataRef.current?.validateSilently() ?? Promise.resolve(false),
+    () =>
+      refs.personalDataRef.current?.validate({
+        focusOnInvalid: false,
+      }) ?? Promise.resolve(false),
   ]
 
   if (isSectionVisible(sections, "work-experience")) {
     validators.push(
-      () => refs.workExperienceRef.current?.validateSilently() ?? Promise.resolve(false)
+      () =>
+        refs.workExperienceRef.current?.validate({
+          focusOnInvalid: false,
+        }) ?? Promise.resolve(false)
     )
   }
 
   if (isSectionVisible(sections, "education")) {
-    validators.push(() => refs.educationRef.current?.validateSilently() ?? Promise.resolve(false))
+    validators.push(
+      () =>
+        refs.educationRef.current?.validate({
+          focusOnInvalid: false,
+        }) ?? Promise.resolve(false)
+    )
   }
 
   if (isSectionVisible(sections, "skills")) {
-    validators.push(() => refs.skillsRef.current?.validateSilently() ?? Promise.resolve(false))
+    validators.push(
+      () =>
+        refs.skillsRef.current?.validate({
+          focusOnInvalid: false,
+        }) ?? Promise.resolve(false)
+    )
   }
 
   if (isSectionVisible(sections, "projects")) {
-    validators.push(() => refs.projectsRef.current?.validateSilently() ?? Promise.resolve(false))
+    validators.push(
+      () =>
+        refs.projectsRef.current?.validate({
+          focusOnInvalid: false,
+        }) ?? Promise.resolve(false)
+    )
   }
 
-  const results = await Promise.all(validators.map((validateSection) => validateSection()))
+  const results = await Promise.all(
+    validators.map((validateSection) => validateSection())
+  )
 
-  return results.every(Boolean)
+  if (!results.every(Boolean)) {
+    await focusFirstErrorInForms(getVisibleFormIds(sections))
+    return false
+  }
+
+  return true
 }
 
 export async function submitGlobalProfileSections(
@@ -57,56 +111,77 @@ export async function submitGlobalProfileSections(
   refs: GlobalProfileSubmitRefs
 ) {
   const submitters: Array<() => Promise<boolean>> = [
-    () => refs.personalDataRef.current?.submitSilently() ?? Promise.resolve(false),
+    () =>
+      refs.personalDataRef.current?.submit({
+        focusOnInvalid: false,
+      }) ?? Promise.resolve(false),
   ]
 
   if (isSectionVisible(sections, "work-experience")) {
     submitters.push(
-      () => refs.workExperienceRef.current?.submitSilently() ?? Promise.resolve(false)
+      () =>
+        refs.workExperienceRef.current?.submit({
+          focusOnInvalid: false,
+        }) ?? Promise.resolve(false)
     )
-  } else {
-    submitters.push(async () => {
-      logHiddenSectionSubmit("workExperience", { experiences: [] })
-      return true
-    })
   }
 
   if (isSectionVisible(sections, "education")) {
-    submitters.push(() => refs.educationRef.current?.submitSilently() ?? Promise.resolve(false))
-  } else {
-    submitters.push(async () => {
-      logHiddenSectionSubmit("education", {
-        studies: [],
-        languages: [],
-        coursesAndCerfifications: [],
-      })
-      return true
-    })
+    submitters.push(
+      () =>
+        refs.educationRef.current?.submit({
+          focusOnInvalid: false,
+        }) ?? Promise.resolve(false)
+    )
   }
 
   if (isSectionVisible(sections, "skills")) {
-    submitters.push(() => refs.skillsRef.current?.submitSilently() ?? Promise.resolve(false))
-  } else {
-    submitters.push(async () => {
-      logHiddenSectionSubmit("skills", { groups: [] })
-      return true
-    })
+    submitters.push(
+      () =>
+        refs.skillsRef.current?.submit({
+          focusOnInvalid: false,
+        }) ?? Promise.resolve(false)
+    )
   }
 
   if (isSectionVisible(sections, "projects")) {
-    submitters.push(() => refs.projectsRef.current?.submitSilently() ?? Promise.resolve(false))
-  } else {
-    submitters.push(async () => {
-      logHiddenSectionSubmit("projects", { projects: [] })
-      return true
-    })
+    submitters.push(
+      () =>
+        refs.projectsRef.current?.submit({
+          focusOnInvalid: false,
+        }) ?? Promise.resolve(false)
+    )
   }
 
   for (const submitSection of submitters) {
     const ok = await submitSection()
 
     if (!ok) {
+      await focusFirstErrorInForms(getVisibleFormIds(sections))
       throw new Error("Corrige los errores del formulario antes de guardar.")
     }
+  }
+}
+
+export function clearGlobalProfileSectionsValidationState(
+  sections: SectionState[],
+  refs: GlobalProfileSubmitRefs
+) {
+  refs.personalDataRef.current?.clearValidationStatePreservingValues()
+
+  if (isSectionVisible(sections, "work-experience")) {
+    refs.workExperienceRef.current?.clearValidationStatePreservingValues()
+  }
+
+  if (isSectionVisible(sections, "education")) {
+    refs.educationRef.current?.clearValidationStatePreservingValues()
+  }
+
+  if (isSectionVisible(sections, "skills")) {
+    refs.skillsRef.current?.clearValidationStatePreservingValues()
+  }
+
+  if (isSectionVisible(sections, "projects")) {
+    refs.projectsRef.current?.clearValidationStatePreservingValues()
   }
 }

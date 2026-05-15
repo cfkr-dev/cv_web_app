@@ -1,3 +1,17 @@
+// DIALOG
+export const profileSectionSaveDialogTexts = {
+  title: "Guardar seccion",
+  description: "Deseas guardar estos datos?",
+  actionLabel: "Guardar",
+  loadingLabel: "Guardando",
+  successTitle: "Seccion guardada",
+  successDescription:
+    "Los datos de esta seccion se han guardado correctamente.",
+  errorTitle: "No se pudo guardar la seccion",
+  errorDescription:
+    "No se han podido guardar los datos de esta seccion. Intentalo de nuevo.",
+}
+
 // PERSONAL DATA FORM
 export const personalDataFormId = "personal-data-form"
 export const personalDataSummaryMaxLength = 1350
