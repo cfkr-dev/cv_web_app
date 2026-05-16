@@ -1,4 +1,4 @@
-import type { WorkExperienceSectionFormValues } from "@/features/profile/edit/validation/schemas/work-experience"
+import type { WorkExperienceSectionFormValues } from "@/features/profile/edit/sections/work-experience"
 import { bytes } from "@/lib/utils/general/bytes"
 
 const workExperienceData: WorkExperienceSectionFormValues = {

@@ -1,4 +1,4 @@
-import type { EducationSectionFormValues } from "@/features/profile/edit/validation/schemas/education"
+import type { EducationSectionFormValues } from "@/features/profile/edit/sections/education"
 import { bytes } from "@/lib/utils/general/bytes"
 
 const educationData: EducationSectionFormValues = {
@@ -70,7 +70,7 @@ const educationData: EducationSectionFormValues = {
       ],
     },
   ],
-  coursesAndCerfifications: [
+  coursesAndCertifications: [
     {
       id: "1",
       title: "Curso avanzado de React y Next.js",
@@ -117,7 +117,7 @@ export async function getEducation() {
         ...mediaItem,
       })),
     })),
-    coursesAndCerfifications: educationData.coursesAndCerfifications.map(
+    coursesAndCertifications: educationData.coursesAndCertifications.map(
       (course) => ({
         ...course,
         media: course.media.map((mediaItem) => ({

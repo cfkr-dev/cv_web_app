@@ -1,4 +1,4 @@
-import type { PersonalDataFormValues } from "@/features/profile/edit/validation/schemas/personal-data"
+import type { PersonalDataFormValues } from "@/features/profile/edit/sections/personal-data"
 
 const personalData: PersonalDataFormValues = {
   role: "Frontend Developer",

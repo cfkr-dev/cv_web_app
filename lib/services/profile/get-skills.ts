@@ -1,4 +1,4 @@
-import type { SkillsSectionFormValues } from "@/features/profile/edit/validation/schemas/skills"
+import type { SkillsSectionFormValues } from "@/features/profile/edit/sections/skills"
 
 const skillsData: SkillsSectionFormValues = {
   groups: [

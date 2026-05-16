@@ -63,10 +63,10 @@ import { cn } from "@/lib/utils"
 
 const cvNavItems = [
   { href: "#perfil", label: "Datos personales" },
-  { href: "#experiencia", label: "Experiencia laboral" },
-  { href: "#educacion", label: "Educacion" },
-  { href: "#habilidades", label: "Habilidades" },
-  { href: "#proyectos", label: "Proyectos" },
+  { href: "#work-experience", label: "Experiencia laboral" },
+  { href: "#education", label: "Educacion" },
+  { href: "#skills", label: "Habilidades" },
+  { href: "#projects", label: "Proyectos" },
 ]
 
 const mainNavItems = [
@@ -1035,7 +1035,7 @@ export default function ProfilePage() {
         </section>
 
         <ProfileSection
-          id="experiencia"
+          id="work-experience"
           title="Experiencia laboral"
           description="Puestos, empresas, ubicaciones y responsabilidades principales ordenadas como historial profesional."
         >
@@ -1050,7 +1050,7 @@ export default function ProfilePage() {
         </ProfileSection>
 
         <ProfileSection
-          id="educacion"
+          id="education"
           title="Educacion"
           description="Estudios, idiomas, cursos y certificados organizados como bloques desplegables dentro del CV."
         >
@@ -1100,7 +1100,7 @@ export default function ProfilePage() {
         </ProfileSection>
 
         <ProfileSection
-          id="habilidades"
+          id="skills"
           title="Habilidades"
           description="Bloques de habilidades organizados por tematica, con nivel, progreso y filtros independientes por experiencia."
         >
@@ -1112,7 +1112,7 @@ export default function ProfilePage() {
         </ProfileSection>
 
         <ProfileSection
-          id="proyectos"
+          id="projects"
           title="Proyectos personales"
           description="Proyectos propios con fechas, descripcion y galeria multimedia opcional."
         >
